@@ -38,8 +38,6 @@ extern "C"
  */
 typedef struct TimerEvent_s
 {
-    timer_t t;                             //! Timer File Descriptor
-    struct sigevent sev;
     uint32_t Timestamp;                  //! Current timer value
     uint32_t ReloadValue;                //! Timer delay value
     bool IsStarted;                      //! Is the timer currently running

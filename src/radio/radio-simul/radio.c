@@ -621,7 +621,7 @@ void RadioSend( uint8_t *buffer, uint8_t size )
 
     gettimeofday(&tv, NULL);
 
-    uint millis = (unsigned long long)(tv.tv_sec) * 1000 +
+    unsigned millis = (unsigned long long)(tv.tv_sec) * 1000 +
         (unsigned long long)(tv.tv_usec) / 1000;
 
     printf("{\"rxpk\":[\
@@ -814,7 +814,8 @@ void MockSetOperatingMode( RadioOperatingModes_t mode )
 
 
 void RadioIrqProcess( void )
-{   
+{
+    extern void poll_timers(void);
     poll_timers();
 
      if( IrqFired == true )

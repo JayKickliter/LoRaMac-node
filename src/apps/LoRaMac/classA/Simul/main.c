@@ -7,6 +7,7 @@
 #include "LoRaMac.h"
 #include "Commissioning.h"
 #include "NvmCtxMgmt.h"
+#include <unistd.h>
 
 #ifndef ACTIVE_REGION
 
@@ -136,7 +137,7 @@ static bool NextTx = true;
 
 /*!
  * Indicates if LoRaMacProcess call is pending.
- * 
+ *
  * \warning If variable is equal to 0 then the MCU can be set in low power mode
  */
 static uint8_t IsMacProcessPending = 0;
@@ -241,7 +242,7 @@ const char* MacStatusStrings[] =
  * MAC event info status strings.
  */
 const char* EventInfoStatusStrings[] =
-{ 
+{
     "OK",                            // LORAMAC_EVENT_INFO_STATUS_OK
     "Error",                         // LORAMAC_EVENT_INFO_STATUS_ERROR
     "Tx timeout",                    // LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT
@@ -263,7 +264,7 @@ const char* EventInfoStatusStrings[] =
 
 /*!
  * Prints the provided buffer in HEX
- * 
+ *
  * \param buffer Buffer to be printed
  * \param size   Buffer size to be printed
  */
@@ -368,7 +369,7 @@ static bool SendFrame( void )
     if(++TxConfirmCount == CONFIRM_EVERY) {
         IsTxConfirmed = true;
         TxConfirmCount = 0;
-    } else { 
+    } else {
         IsTxConfirmed = false;
     }
     McpsReq_t mcpsReq;
@@ -386,7 +387,7 @@ static bool SendFrame( void )
     else
     {
         if( IsTxConfirmed == false )
-        {   
+        {
             printf("Sending Unconfirmed Packet\r\n");
             mcpsReq.Type = MCPS_UNCONFIRMED;
             mcpsReq.Req.Unconfirmed.fPort = AppPort;
@@ -777,7 +778,7 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
     printf( "\r\n###### ===== DOWNLINK FRAME %lu ==== ######\r\n", mcpsIndication->DownLinkCounter );
 
     printf( "RX WINDOW   : %s\r\n", slotStrings[mcpsIndication->RxSlot] );
-    
+
     printf( "RX PORT     : %d\r\n", mcpsIndication->Port );
 
     if( mcpsIndication->McpsIndication == MCPS_CONFIRMED )
@@ -904,24 +905,24 @@ void OnMacProcessNotify( void )
  */
 int main( void )
 {
-    LoRaMacPrimitives_t macPrimitives;
-    LoRaMacCallback_t macCallbacks;
     MibRequestConfirm_t mibReq;
     LoRaMacStatus_t status;
     uint8_t devEui[] = LORAWAN_DEVICE_EUI;
     uint8_t joinEui[] = LORAWAN_JOIN_EUI;
 
-    BoardInitMcu( );
-    BoardInitPeriph( );
+    LoRaMacPrimitives_t macPrimitives = {
+        .MacMcpsConfirm    = McpsConfirm,
+        .MacMcpsIndication = McpsIndication,
+        .MacMlmeConfirm    = MlmeConfirm,
+        .MacMlmeIndication = MlmeIndication,
+    };
 
-    macPrimitives.MacMcpsConfirm = McpsConfirm;
-    macPrimitives.MacMcpsIndication = McpsIndication;
-    macPrimitives.MacMlmeConfirm = MlmeConfirm;
-    macPrimitives.MacMlmeIndication = MlmeIndication;
-    macCallbacks.GetBatteryLevel = BoardGetBatteryLevel;
-    macCallbacks.GetTemperatureLevel = NULL;
-    macCallbacks.NvmContextChange = NvmCtxMgmtEvent;
-    macCallbacks.MacProcessNotify = OnMacProcessNotify;
+    LoRaMacCallback_t macCallbacks = {
+        .GetBatteryLevel = BoardGetBatteryLevel,
+        .GetTemperatureLevel = NULL,
+        .NvmContextChange    = NvmCtxMgmtEvent,
+        .MacProcessNotify = OnMacProcessNotify
+    };
 
     status = LoRaMacInitialization( &macPrimitives, &macCallbacks, ACTIVE_REGION );
     if ( status != LORAMAC_STATUS_OK )
@@ -980,11 +981,9 @@ int main( void )
                     LoRaMacMibSetRequestConfirm( &mibReq );
 
                     // Initialize LoRaMac device unique ID if not already defined in Commissioning.h
-                    if( ( devEui[0] == 0 ) && ( devEui[1] == 0 ) &&
-                        ( devEui[2] == 0 ) && ( devEui[3] == 0 ) &&
-                        ( devEui[4] == 0 ) && ( devEui[5] == 0 ) &&
-                        ( devEui[6] == 0 ) && ( devEui[7] == 0 ) )
+                    if(0 == *((uint64_t*)devEui))
                     {
+                        _Static_assert(sizeof(devEui) == sizeof(uint64_t), "");
                         BoardGetUniqueId( devEui );
                     }
 

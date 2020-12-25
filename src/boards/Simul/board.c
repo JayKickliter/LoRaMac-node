@@ -22,77 +22,73 @@
  */
 
 #include "board.h"
-#include <stdlib.h>
 #include "timer.h"
+#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-void poll_timers( void );
+void
+poll_timers(void);
 
 /*!
  * Initializes the unused GPIO to a know status
  */
-static void BoardUnusedIoInit( void );
+static void
+BoardUnusedIoInit(void);
 /*!
  * System Clock Configuration
  */
-static void SystemClockConfig( void );
+static void
+SystemClockConfig(void);
 
 /*!
  * Used to measure and calibrate the system wake-up time from STOP mode
  */
-static void CalibrateSystemWakeupTime( void );
+static void
+CalibrateSystemWakeupTime(void);
 
 /*!
  * System Clock Re-Configuration when waking up from STOP mode
  */
-static void SystemClockReConfig( void );
+static void
+SystemClockReConfig(void);
 
 
 /*!
  * Callback indicating the end of the system wake-up time calibration
  */
-static void OnCalibrateSystemWakeupTimeTimerEvent( void* context )
-{
-}
+static void
+OnCalibrateSystemWakeupTimeTimerEvent(void * context) {}
 
 /*!
  * Holds the bord version.
  */
-static Version_t BoardVersion = { 0 };
+static Version_t BoardVersion = {0};
 
-void BoardCriticalSectionBegin( uint32_t *mask )
-{
+void
+BoardCriticalSectionBegin(uint32_t * mask) {}
 
-}
+void
+BoardCriticalSectionEnd(uint32_t * mask) {}
 
-void BoardCriticalSectionEnd( uint32_t *mask )
-{
-}
+/* void BoardInitPeriph( void ) {} */
 
-void BoardInitPeriph( void )
-{
-}
+/* void BoardInitMcu( void ) {} */
 
-void BoardInitMcu( void )
-{
-}
+void
+BoardResetMcu(void) {}
 
-void BoardResetMcu( void )
-{
-}
+void
+BoardDeInitMcu(void) {}
 
-void BoardDeInitMcu( void )
-{
-}
-
-uint32_t BoardGetRandomSeed( void )
-{
+uint32_t
+BoardGetRandomSeed(void) {
     return 0;
 }
 
-void BoardGetUniqueId( uint8_t *id )
-{
+void
+BoardGetUniqueId(uint8_t * id) {
     id[7] = 0xDE;
     id[6] = 0xAD;
     id[5] = 0xBE;
@@ -104,70 +100,63 @@ void BoardGetUniqueId( uint8_t *id )
 }
 
 
-uint16_t BoardBatteryMeasureVolage( void )
-{
- 
+uint16_t
+BoardBatteryMeasureVolage(void) {
+    return 0;
 }
 
-uint32_t BoardGetBatteryVoltage( void )
-{
+uint32_t
+BoardGetBatteryVoltage(void) {
     return 355;
 }
 
-uint8_t BoardGetBatteryLevel( void )
-{
-  
+uint8_t
+BoardGetBatteryLevel(void) {
     return 233;
 }
 
-static void BoardUnusedIoInit( void )
-{
+static void
+BoardUnusedIoInit(void) {}
+
+
+void
+SystemClockConfig(void) {}
+
+void
+CalibrateSystemWakeupTime(void) {}
+
+void
+SystemClockReConfig(void) {}
+
+void
+SysTick_Handler(void) {}
+
+uint8_t
+GetBoardPowerSource(void) {
+    return 0;
 }
 
-
-void SystemClockConfig( void )
-{
-}
-
-void CalibrateSystemWakeupTime( void )
-{
-
-}
-
-void SystemClockReConfig( void )
-{
-}
-
-void SysTick_Handler( void )
-{
-}
-
-uint8_t GetBoardPowerSource( void )
-{
-
-}
-
-void BoardLowPowerHandler( void )
-{
-}
+void
+BoardLowPowerHandler(void) {}
 
 
-#include <stddef.h>
 #include "radio.h"
+#include <stddef.h>
 
 
-void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size ){
+void
+memcpy1(uint8_t * dst, const uint8_t * src, uint16_t size) {
     memcpy(dst, src, size);
 }
-void memset1( uint8_t *dst, uint8_t value, uint16_t size ){
+void
+memset1(uint8_t * dst, uint8_t value, uint16_t size) {
     memset(dst, value, size);
 }
 
-void memcpyr( uint8_t *dst, const uint8_t *src, uint16_t size )
-{
-    dst = dst + ( size - 1 );
-    while( size-- )
-    {
+void
+memcpyr(uint8_t * dst, const uint8_t * src, uint16_t size) {
+    dst = dst + (size - 1);
+    while (size--) {
         *dst-- = *src++;
     }
 }
@@ -180,21 +169,21 @@ void memcpyr( uint8_t *dst, const uint8_t *src, uint16_t size )
 // Standard random functions redefinition start
 #define RAND_LOCAL_MAX 2147483647L
 
-int32_t rand1( void )
-{
+int32_t
+rand1(void) {
     return random();
 }
 
-void srand1( uint32_t seed )
-{
+void
+srand1(uint32_t seed) {
     srandom(seed);
 }
 
 // Standard random functions redefinition end
 
-int32_t randr( int32_t min, int32_t max )
-{
-    return ( int32_t )rand1( ) % ( max - min + 1 ) + min;
+int32_t
+randr(int32_t min, int32_t max) {
+    return (int32_t)rand1() % (max - min + 1) + min;
 }
 
 typedef uint32_t TimerTime_t;
@@ -203,7 +192,7 @@ typedef uint32_t TimerTime_t;
 /*!
  * Timers list head pointer
  */
-static TimerEvent_t *TimerListHead = NULL;
+static TimerEvent_t * TimerListHead = NULL;
 
 /*!
  * \brief Adds or replace the head timer of the list.
@@ -214,7 +203,8 @@ static TimerEvent_t *TimerListHead = NULL;
  * \param [IN]  obj Timer object to be become the new head
  * \param [IN]  remainingTime Remaining time of the previous head to be replaced
  */
-static void TimerInsertNewHeadTimer( TimerEvent_t *obj );
+static void
+TimerInsertNewHeadTimer(TimerEvent_t * obj);
 
 /*!
  * \brief Adds a timer to the list.
@@ -223,16 +213,19 @@ static void TimerInsertNewHeadTimer( TimerEvent_t *obj );
  *         next timer to expire.
  *
  * \param [IN]  obj Timer object to be added to the list
- * \param [IN]  remainingTime Remaining time of the running head after which the object may be added
+ * \param [IN]  remainingTime Remaining time of the running head after which the
+ * object may be added
  */
-static void TimerInsertTimer( TimerEvent_t *obj );
+static void
+TimerInsertTimer(TimerEvent_t * obj);
 
 /*!
  * \brief Sets a timeout with the duration "timestamp"
  *
  * \param [IN] timestamp Delay duration
  */
-static void TimerSetTimeout( TimerEvent_t *obj );
+static void
+TimerSetTimeout(TimerEvent_t * obj);
 
 /*!
  * \brief Check if the Object to be added is not already in the list
@@ -240,14 +233,14 @@ static void TimerSetTimeout( TimerEvent_t *obj );
  * \param [IN] timestamp Delay duration
  * \retval true (the object is already in the list) or false
  */
-static bool TimerExists( TimerEvent_t *obj );
+static bool
+TimerExists(TimerEvent_t * obj);
 
 
 /*!
  * These are hard-coded to help make debug more readable
  */
-const char* TimerString[8] =
-{ 
+const char * TimerString[8] = {
     "OnTxDelayedTimerEvent",
     "OnRxWindow1TimerEvent",
     "OnRxWindow2TimerEvent",
@@ -258,20 +251,21 @@ const char* TimerString[8] =
     "Unlabelled 8",
 };
 
-TimerEvent_t * timer[8];
-uint num_timers = 0;
-static uint trigger_win2 = 0;
+TimerEvent_t *  timer[8];
+unsigned        num_timers   = 0;
+static unsigned trigger_win2 = 0;
 
-void poll_timers() {
-    int ret, res;
+void
+poll_timers() {
+    int               ret, res;
     struct itimerspec ts;
-    for(uint i=0; i<num_timers; i++) {
-        if(timer[i]->IsStarted) {
-            uint time = timer_gettime(timer[i]->t, &ts);
-            if(ts.it_value.tv_sec == 0 && ts.it_value.tv_nsec == 0){
+    for (int i = 0; i < num_timers; i++) {
+        if (timer[i]->IsStarted) {
+            int time = timer_gettime(timer[i]->t, &ts);
+            if (ts.it_value.tv_sec == 0 && ts.it_value.tv_nsec == 0) {
                 // fire the timer
-                if(timer[i]->Callback!=NULL){
-                    //printf("Firing callback: %s\n", TimerString[i]);
+                if (timer[i]->Callback != NULL) {
+                    // printf("Firing callback: %s\n", TimerString[i]);
                     (*timer[i]->Callback)(timer[i]->Context);
                 }
                 TimerStart(timer[i]);
@@ -281,18 +275,18 @@ void poll_timers() {
 
     if (trigger_win2) {
         trigger_win2++;
-        if(trigger_win2 == 2) {
-            //printf("Firing callback: %s\n", TimerString[2]);
+        if (trigger_win2 == 2) {
+            // printf("Firing callback: %s\n", TimerString[2]);
             (*timer[2]->Callback)(timer[2]->Context);
             trigger_win2 = 0;
         }
-        
     }
 }
 
-int get_timer_index(TimerEvent_t *obj) {
-    for(uint i=0; i<num_timers; i++) {
-        if(timer[i] == obj){
+int
+get_timer_index(TimerEvent_t * obj) {
+    for (uint i = 0; i < num_timers; i++) {
+        if (timer[i] == obj) {
             return i;
         }
     }
@@ -301,51 +295,51 @@ int get_timer_index(TimerEvent_t *obj) {
 
 
 
-void TimerInit( TimerEvent_t *obj, void ( *callback )( void *context ) )
-{
-    timer[num_timers] = obj;
+void
+TimerInit(TimerEvent_t * obj, void (*callback)(void * context)) {
+    timer[num_timers]     = obj;
     obj->sev.sigev_notify = SIGEV_NONE;
     timer_create(CLOCK_REALTIME, &obj->sev, &obj->t);
     int i = get_timer_index(obj);
-    if(!i){
-        //printf("!!!!Index query failed: %u\r\n", num_timers);
+    if (!i) {
+        // printf("!!!!Index query failed: %u\r\n", num_timers);
     } else {
-        //printf("Creating timer %s : %p\r\n", TimerString[num_timers], obj->t);
+        // printf("Creating timer %s : %p\r\n", TimerString[num_timers], obj->t);
     }
 
 
-    obj->Timestamp = 0;
-    obj->ReloadValue = 0;
-    obj->IsStarted = false;
+    obj->Timestamp     = 0;
+    obj->ReloadValue   = 0;
+    obj->IsStarted     = false;
     obj->IsNext2Expire = false;
-    obj->Callback = callback;
-    obj->Context = NULL;
+    obj->Callback      = callback;
+    obj->Context       = NULL;
 
     num_timers++;
 }
 
-void TimerSetContext( TimerEvent_t *obj, void* context )
-{
+void
+TimerSetContext(TimerEvent_t * obj, void * context) {
     obj->Context = context;
 }
 
-void TimerStart( TimerEvent_t *obj )
-{
+void
+TimerStart(TimerEvent_t * obj) {
     int i = get_timer_index(obj);
-    if(!i){
+    if (!i) {
         printf("TimerStart: Index query failed %u\r\n", i);
         return;
     }
 
-    //if(TimerString[i] == "OnRxWindow1TimerEvent") {
-        //printf("Immediately firing timer %s\r\n", TimerString[i]);
-        (*timer[i]->Callback)(timer[i]->Context);
+    // if(TimerString[i] == "OnRxWindow1TimerEvent") {
+    // printf("Immediately firing timer %s\r\n", TimerString[i]);
+    (*timer[i]->Callback)(timer[i]->Context);
     // } else if (TimerString[i] == "OnRxWindow2TimerEvent"){
     //     //printf("Signalling RxWindow2TimerEvent for next poll\r\n");
     //     trigger_win2 = 1;
     // } else {
-    //     //printf("Starting timer %s for %u ms\r\n", TimerString[i], obj->ReloadValue);
-    //     struct itimerspec ts;
+    //     //printf("Starting timer %s for %u ms\r\n", TimerString[i],
+    //     obj->ReloadValue); struct itimerspec ts;
 
     //     ts.it_value.tv_sec = obj->ReloadValue/1000.0;
     //     ts.it_value.tv_nsec = (obj->ReloadValue % 1000) * 1000;
@@ -353,7 +347,7 @@ void TimerStart( TimerEvent_t *obj )
     //     // we will manually rearm the timer
     //     ts.it_interval.tv_sec = 0;
     //     ts.it_interval.tv_nsec = 0;
-      
+
     //     obj->IsStarted = true;
 
     //     if (timer_settime(obj->t, 0, &ts, NULL) < 0) {
@@ -363,91 +357,73 @@ void TimerStart( TimerEvent_t *obj )
     // }
 }
 
-static void TimerInsertTimer( TimerEvent_t *obj )
-{
-}
+static void
+TimerInsertTimer(TimerEvent_t * obj) {}
 
-static void TimerInsertNewHeadTimer( TimerEvent_t *obj )
-{
-}
+static void
+TimerInsertNewHeadTimer(TimerEvent_t * obj) {}
 
-bool TimerIsStarted( TimerEvent_t *obj )
-{
+bool
+TimerIsStarted(TimerEvent_t * obj) {}
 
-}
+void
+TimerIrqHandler(void) {}
 
-void TimerIrqHandler( void )
-{
-}
-
-void TimerStop( TimerEvent_t *obj )
-{
+void
+TimerStop(TimerEvent_t * obj) {
     int i = get_timer_index(obj);
-    // if(!i){
-    //     printf("Index query failed\r\n");
-    //     //return;
-    // }
+    assert(i >= 0);
 
-    if (TimerString[i] == "OnRxWindow2TimerEvent"){
+    if (!strcmp(TimerString[i], "OnRxWindow2TimerEvent")) {
         trigger_win2 = 0;
     }
 
-    //printf("Stopping timer %s\r\n", TimerString[i]);
-    struct itimerspec ts;
+    struct itimerspec ts = {
+        .it_value.tv_sec     = 0,
+        .it_value.tv_nsec    = 0,
+        .it_interval.tv_sec  = 0,
+        .it_interval.tv_nsec = 0,
+    };
+    i = timer_settime(obj->t, 0, &ts, NULL);
+    assert(i >= 0);
 
-    ts.it_value.tv_sec = 0;
-    ts.it_value.tv_nsec = 0;
-    ts.it_interval.tv_sec = 0;
-    ts.it_interval.tv_nsec = 0;
-  
     obj->IsStarted = false;
-
-    if (timer_settime(obj->t, 0, &ts, NULL) < 0) {
-        printf("timer_settime() failed");
-        return;
-    }
 }
 
-static bool TimerExists( TimerEvent_t *obj )
-{
-}
+static bool
+TimerExists(TimerEvent_t * obj) {}
 
-void TimerReset( TimerEvent_t *obj )
-{
+void
+TimerReset(TimerEvent_t * obj) {}
 
-}
-
-// given in 
-void TimerSetValue( TimerEvent_t *obj, uint32_t value )
-{
+// given in
+void
+TimerSetValue(TimerEvent_t * obj, uint32_t value) {
     uint32_t minValue = 0;
 
-    TimerStop( obj );
+    TimerStop(obj);
 
-    obj->Timestamp = value;
+    obj->Timestamp   = value;
     obj->ReloadValue = value;
 }
 
-TimerTime_t TimerGetCurrentTime( void )
-{
-    return  0;
-}
+/* TimerTime_t */
+/* TimerGetCurrentTime(void) { */
+/*     return 0; */
+/* } */
 
-TimerTime_t TimerGetElapsedTime( TimerTime_t past )
-{
+TimerTime_t
+TimerGetElapsedTime(TimerTime_t past) {
     return 1000000;
 }
 
-static void TimerSetTimeout( TimerEvent_t *obj )
-{
-    
-}
+static void
+TimerSetTimeout(TimerEvent_t * obj) {}
 
-TimerTime_t TimerTempCompensation( TimerTime_t period, float temperature )
-{
+TimerTime_t
+TimerTempCompensation(TimerTime_t period, float temperature) {
     return 0;
 }
 
-void TimerProcess( void )
-{
-}
+void
+TimerProcess(void) {}
